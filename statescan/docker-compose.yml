@@ -1,0 +1,109 @@
+version: '3.7'
+
+x-common-arguments: &common-arguments
+  REACT_APP_PUBLIC_API_END_POINT: https://api-explorer.kreivo.io/
+  REACT_APP_PUBLIC_SIMPLE_MODE: "true"
+
+x-common-variables: &common-variables
+  MONGO_ACCOUNT_SCAN_URL: mongodb://mongodb:27017
+  MONGO_ACCOUNT_SCAN_NAME: statescan-kreivo-account
+  MONGO_ASSET_SCAN_URL: mongodb://mongodb:27017
+  MONGO_ASSET_SCAN_NAME: statescan-kreivo-asset
+  MONGO_BLOCK_SCAN_URL: mongodb://mongodb:27017
+  MONGO_BLOCK_SCAN_NAME: statescan-kreivo-block
+  MONGO_META_URL: mongodb://mongodb:27017
+  MONGO_DB_META_NAME: meta-kreivo
+  MONGO_RUNTIME_SCAN_URL: mongodb://mongodb:27017
+  MONGO_RUNTIME_SCAN_NAME: statescan-kreivo-runtime
+  MONGO_UNIQUES_SCAN_URL: mongodb://mongodb:27017
+  MONGO_UNIQUES_SCAN_NAME: prod-statescan-kreivo-uniques
+  MONGO_DB_KNOWN_HEIGHTS_URL: mongodb://mongodb:27017
+  CHAIN: kreivo
+  WS_ENDPOINT: wss://kreivo.io/
+  USE_META: 1
+  SIMPLE_MODE: 1
+  LOG_LEVEL: info
+  NODE_ENV: production
+
+services:
+  mongodb:
+    image: mongo:4.4.18 #image: mongodb/mongodb-community-server:6.0-ubi8
+    container_name: statescan-mongo
+    restart: always
+    ports:
+      - "127.0.0.1:27100:27017"
+    volumes:
+      - ./mongo-data:/data/db
+
+  account-scan:
+    image: ghrc.io/virto-network/kreivo-statescan-backend
+    command: ["node", "account-scan/src/index.js"]
+    container_name: account-scan
+    restart: always
+    environment:
+      <<: *common-variables
+      SCAN_STEP: 500
+
+  asset-scan:
+    image: ghrc.io/virto-network/kreivo-statescan-backend
+    command: [ "node", "asset-scan/src/index.js" ]
+    container_name: asset-scan
+    restart: always
+    environment:
+      <<: *common-variables
+      USE_KNOWN_HEIGHTS: 0
+      MONGO_DB_KNOWN_HEIGHTS_NAME: known-heights-statescan-kreivo-asset
+      FOLLOW_BLOCK_SCAN: "true"
+      SCAN_STEP: 500
+
+  block-scan:
+    image: ghrc.io/virto-network/kreivo-statescan-backend
+    command: ["node", "block-scan/src/index.js"]
+    container_name: block-scan
+    restart: always
+    environment:
+      <<: *common-variables
+      SCAN_STEP: 500
+
+  runtime-scan:
+    image: ghrc.io/virto-network/kreivo-statescan-backend
+    command: ["node", "runtime-scan/src/index.js"]
+    container_name: runtime-scan
+    restart: always
+    environment:
+      <<: *common-variables
+      SCAN_STEP: 500
+
+  rest-api:
+    image: ghrc.io/virto-network/kreivo-statescan-backend
+    command: ["node", "server/src/index.js"]
+    container_name: rest-api
+    restart: always
+    ports:
+      - "127.0.0.1:5010:5010"
+    environment:
+      <<: *common-variables
+      PORT: 5010
+      VIRTUAL_HOST: api-explorer.kreivo.io
+      VIRTUAL_PORT: 5010
+      VIRTUAL_PATH: /
+      LETSENCRYPT_HOST: api-explorer.kreivo.io
+      LETSENCRYPT_EMAIL: contact@virto.team
+
+  web-app:
+    image: ghrc.io/virto-network/kreivo-statescan-site
+    environment:
+      VIRTUAL_HOST: explorer.kreivo.io
+      VIRTUAL_PORT: 3000
+      VIRTUAL_PATH: /
+      LETSENCRYPT_HOST: explorer.kreivo.io
+      LETSENCRYPT_EMAIL: contact@virto.team
+    container_name: web-app
+    restart: always
+    ports:
+      - "127.0.0.1:3000:3000"
+
+networks:
+  default:
+    name: net-explorer
+    external: true

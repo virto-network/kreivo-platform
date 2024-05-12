@@ -1,0 +1,80 @@
+name: Statescan
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-backend-image:
+    name: Build Backend Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Statescan
+        uses: actions/checkout@v4
+        with: 
+          repository: opensquare-network/statescan-v2
+          ref: release-1.4.0
+          fetch-depth: 1
+          path: statescan-v2
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          clean: false
+          fetch-depth: 1
+          sparse-checkout: |
+            statescan
+          path: kreivo-platform
+      - name: Merge directories
+        run: rsync --recursive kreivo-platform/statescan/ statescan-v2/
+      - name: Verify checkout
+        run: ls -la statescan-v2/backend
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to Docker Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and Push Image
+        uses: docker/build-push-action@v5
+        with:
+          context: statescan-v2/backend
+          push: true
+          tags: ghcr.io/virto-network/kreivo-statescan-backend:${{ github.sha }},ghcr.io/virto-network/kreivo-statescan-backend:latest
+  build-site-image:
+    name: Build Site Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Statescan
+        uses: actions/checkout@v4
+        with: 
+          repository: opensquare-network/statescan-v2
+          ref: release-1.4.0
+          fetch-depth: 1
+          path: statescan-v2
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          clean: false
+          fetch-depth: 1
+          sparse-checkout: |
+            statescan
+          path: kreivo-platform
+      - name: Merge directories
+        run: rsync --recursive kreivo-platform/statescan/ statescan-v2/
+      - name: Verify checkout
+        run: ls -la statescan-v2/site
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to Docker Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and Push Image
+        uses: docker/build-push-action@v5
+        with:
+          context: statescan-v2/site
+          push: true
+          tags: ghcr.io/virto-network/kreivo-statescan-site:${{ github.sha }},ghcr.io/virto-network/kreivo-statescan-site:latest
