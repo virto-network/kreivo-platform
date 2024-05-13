@@ -2,6 +2,7 @@ name: Statescan
 on:
   push:
     branches: [main]
+    paths: statescan
 
 jobs:
   build-backend-image:

@@ -27,7 +27,7 @@ x-common-variables: &common-variables
 
 services:
   mongodb:
-    image: mongo:4.4.18 #image: mongodb/mongodb-community-server:6.0-ubi8
+    image: mongodb/mongodb-community-server:6.0-ubi8
     container_name: statescan-mongo
     restart: always
     ports:
@@ -36,7 +36,7 @@ services:
       - ./mongo-data:/data/db
 
   account-scan:
-    image: ghrc.io/virto-network/kreivo-statescan-backend
+    image: ghcr.io/virto-network/kreivo-statescan-backend
     command: ["node", "account-scan/src/index.js"]
     container_name: account-scan
     restart: always
@@ -45,7 +45,7 @@ services:
       SCAN_STEP: 500
 
   asset-scan:
-    image: ghrc.io/virto-network/kreivo-statescan-backend
+    image: ghcr.io/virto-network/kreivo-statescan-backend
     command: [ "node", "asset-scan/src/index.js" ]
     container_name: asset-scan
     restart: always
@@ -57,7 +57,7 @@ services:
       SCAN_STEP: 500
 
   block-scan:
-    image: ghrc.io/virto-network/kreivo-statescan-backend
+    image: ghcr.io/virto-network/kreivo-statescan-backend
     command: ["node", "block-scan/src/index.js"]
     container_name: block-scan
     restart: always
@@ -66,7 +66,7 @@ services:
       SCAN_STEP: 500
 
   runtime-scan:
-    image: ghrc.io/virto-network/kreivo-statescan-backend
+    image: ghcr.io/virto-network/kreivo-statescan-backend
     command: ["node", "runtime-scan/src/index.js"]
     container_name: runtime-scan
     restart: always
@@ -75,7 +75,7 @@ services:
       SCAN_STEP: 500
 
   rest-api:
-    image: ghrc.io/virto-network/kreivo-statescan-backend
+    image: ghcr.io/virto-network/kreivo-statescan-backend
     command: ["node", "server/src/index.js"]
     container_name: rest-api
     restart: always
@@ -91,7 +91,7 @@ services:
       LETSENCRYPT_EMAIL: contact@virto.team
 
   web-app:
-    image: ghrc.io/virto-network/kreivo-statescan-site
+    image: ghcr.io/virto-network/kreivo-statescan-site
     environment:
       VIRTUAL_HOST: explorer.kreivo.io
       VIRTUAL_PORT: 3000
